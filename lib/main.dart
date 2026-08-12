@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_chat_apps/screens/auth_screen.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+void main() async{
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform
+  );
   runApp(const App());
 }
 
