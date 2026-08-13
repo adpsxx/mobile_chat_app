@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -17,6 +18,7 @@ class _AuthScreenState extends State<AuthScreen> {
   var _isLogin = true;
   var _enteredEmail = '';
   var _enteredPassword = '';
+  var _enteredUsername = '';
 
   void _submit() async {
     final isValid = _form.currentState!.validate();
@@ -29,13 +31,18 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       if (_isLogin) {
         final userCredentials = _firebase.signInWithEmailAndPassword(email: _enteredEmail, password: _enteredPassword);
-
       } else {
         final userCredentials = await _firebase.createUserWithEmailAndPassword(
           email: _enteredEmail, 
           password: _enteredPassword
         );
+
+        await FirebaseFirestore.instance.collection("users").doc(userCredentials.user!.uid).set({
+          'username' : _enteredUsername,
+          'email' : _enteredEmail,
+        });
       }
+
     } on FirebaseAuthException catch (error) {
       if (error.code == 'email-already-in-use') {
 
@@ -86,6 +93,22 @@ class _AuthScreenState extends State<AuthScreen> {
                               _enteredEmail = value!;
                             },
                           ),
+                          if (!_isLogin)
+                            TextFormField(
+                              validator: (value) {
+                                if (value == null || value.isEmpty || value.trim().length < 4) {
+                                  return 'Please enter a valid username.';
+                                }
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                labelText: "Username",
+                              ),
+                              enableSuggestions: false,
+                              onSaved: (value) {
+                                _enteredUsername = value!;
+                              },
+                            ),
                           TextFormField(
                             decoration: InputDecoration(
                               labelText: "Password"
